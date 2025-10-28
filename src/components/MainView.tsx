@@ -45,15 +45,6 @@ const MainView = ({ onNavigate, onTopupStart }: MainViewProps) => {
             <Icon name="HelpCircle" className="mr-2" size={20} />
             Помощь
           </Button>
-
-          <Button
-            onClick={() => onNavigate('admin')}
-            className="w-full h-10 text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-300 mt-8"
-            variant="outline"
-          >
-            <Icon name="Settings" className="mr-2" size={16} />
-            Админ-панель
-          </Button>
         </div>
       </div>
     </div>

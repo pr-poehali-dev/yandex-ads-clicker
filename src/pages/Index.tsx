@@ -39,6 +39,13 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('admin') === 'true') {
+      setView('admin');
+    }
+  }, []);
+
+  useEffect(() => {
     if (view === 'history') {
       fetchTransactions();
     }
@@ -63,6 +70,14 @@ const Index = () => {
       });
       return;
     }
+    if (parseFloat(amount) < 500) {
+      toast({
+        title: '❌ Ошибка',
+        description: 'Минимальная сумма пополнения — 500₽',
+        variant: 'destructive',
+      });
+      return;
+    }
     setTopupStep('qr');
   };
 
@@ -76,7 +91,23 @@ const Index = () => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64Image = reader.result as string;
+
+        // Сначала создаём транзакцию
+        const response = await fetch(TRANSACTIONS_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            currency: 'RUB',
+          }),
+        });
+
+        const transaction = await response.json();
+        setCurrentTransaction(transaction);
         
+        // Потом отправляем в Telegram с transaction_id
         const telegramUrl = 'https://functions.poehali.dev/1176ffc9-bd7b-4a55-9c07-6c45775764a9';
         await fetch(telegramUrl, {
           method: 'POST',
@@ -86,23 +117,10 @@ const Index = () => {
           body: JSON.stringify({
             image: base64Image,
             amount: amount,
-            currency: currency,
+            currency: 'RUB',
+            transaction_id: transaction.id,
           }),
         });
-
-        const response = await fetch(TRANSACTIONS_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: parseFloat(amount),
-            currency: currency,
-          }),
-        });
-
-        const transaction = await response.json();
-        setCurrentTransaction(transaction);
 
         setTimeout(() => {
           setTopupStep('details');
@@ -126,10 +144,7 @@ const Index = () => {
 
   const getDisplayAmount = () => {
     const amountValue = parseFloat(amount);
-    if (currency === 'CNY') {
-      return `¥ ${amountValue}`;
-    }
-    return `₽ ${amountValue} (¥ ${(amountValue / CNY_TO_RUB_RATE).toFixed(2)})`;
+    return `₽ ${amountValue}`;
   };
 
   const handleTopupStart = () => {
@@ -161,31 +176,51 @@ const Index = () => {
           body: JSON.stringify({
             image: base64Image,
             amount: amount,
-            currency: currency,
+            currency: 'RUB',
             type: 'payment_proof',
             transaction_id: currentTransaction?.id,
           }),
         });
 
-        if (currentTransaction) {
-          await fetch(`${TRANSACTIONS_URL}/${currentTransaction.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              status: 'completed',
-            }),
-          });
-        }
+        toast({
+          title: '✅ Скриншот загружен!',
+          description: 'Ожидайте подтверждения...',
+        });
 
+        // Запускаем проверку статуса каждые 3 секунды
+        const statusCheckInterval = setInterval(async () => {
+          if (!currentTransaction) return;
+          
+          const response = await fetch(TRANSACTIONS_URL);
+          const transactions = await response.json();
+          const updatedTransaction = transactions.find((t: Transaction) => t.id === currentTransaction.id);
+          
+          if (updatedTransaction && updatedTransaction.status !== 'pending') {
+            clearInterval(statusCheckInterval);
+            
+            if (updatedTransaction.status === 'completed') {
+              toast({
+                title: '✅ Оплата получена!',
+                description: 'Средства зачислены на ваш счёт',
+              });
+            } else if (updatedTransaction.status === 'failed') {
+              toast({
+                title: '❌ Платёж отказан',
+                description: 'Попробуйте снова или обратитесь в поддержку',
+                variant: 'destructive',
+              });
+            }
+            
+            setTimeout(() => {
+              handleTopupComplete();
+            }, 2000);
+          }
+        }, 3000);
+
+        // Останавливаем проверку через 5 минут
         setTimeout(() => {
-          toast({
-            title: '✅ Скриншот принят!',
-            description: 'Ваша заявка обрабатывается',
-          });
-          handleTopupComplete();
-        }, 500);
+          clearInterval(statusCheckInterval);
+        }, 300000);
       };
       
       reader.readAsDataURL(file);

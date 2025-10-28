@@ -87,6 +87,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         else:
             caption = f"💰 Новая заявка на пополнение (QR-код)\n\n"
             caption += f"Сумма: {amount} {currency}\n"
+            caption += f"Transaction ID: {transaction_id}\n"
             caption += f"Request ID: {context.request_id}"
         
         # Отправляем фото в Telegram
@@ -99,6 +100,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'chat_id': chat_id,
             'caption': caption
         }
+        
+        # Добавляем кнопки только для QR-кода
+        if image_type != 'payment_proof' and transaction_id != 'N/A':
+            reply_markup = {
+                'inline_keyboard': [[
+                    {
+                        'text': '✅ Оплата получена',
+                        'callback_data': f'approve_{transaction_id}'
+                    },
+                    {
+                        'text': '❌ Платёж отказан',
+                        'callback_data': f'reject_{transaction_id}'
+                    }
+                ]]
+            }
+            data['reply_markup'] = json.dumps(reply_markup)
         
         response = requests.post(telegram_url, files=files, data=data, timeout=10)
         
