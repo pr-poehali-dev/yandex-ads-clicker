@@ -129,7 +129,7 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
   };
 
   return (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-background via-background to-accent/10">
+    <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-sky-50">
       <div className="max-w-4xl mx-auto pt-8">
         <Button onClick={onBack} variant="ghost" className="mb-6">
           <Icon name="ArrowLeft" className="mr-2" size={20} />

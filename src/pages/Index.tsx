@@ -111,14 +111,16 @@ const Index = () => {
   };
 
   const renderMainView = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/10">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2 mb-8">
-          <h1 className="text-4xl font-bold">💳 Alipay Bot</h1>
-          <p className="text-muted-foreground">Быстрое и удобное пополнение</p>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-sky-50">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center space-y-3 mb-12">
+          <div className="inline-block px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-2xl shadow-lg mb-4">
+            <h1 className="text-4xl font-bold text-white">Alipay</h1>
+          </div>
+          <p className="text-lg text-gray-600">Быстрое и безопасное пополнение</p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Button
             onClick={() => {
               setView('topup');
@@ -128,34 +130,37 @@ const Index = () => {
               setQrUploaded(false);
               setCurrentTransaction(null);
             }}
-            className="w-full h-14 text-lg bg-card hover:bg-card/80 text-foreground border border-border shadow-lg"
-            variant="outline"
+            className="w-full h-16 text-lg font-semibold bg-gradient-to-r from-primary to-secondary hover:shadow-xl transition-all duration-300 text-white border-0"
           >
-            <span className="mr-2">📱</span> Пополнить Алипей
+            <Icon name="Wallet" className="mr-3" size={24} />
+            Пополнить кошелёк
           </Button>
 
           <Button
             onClick={() => setView('history')}
-            className="w-full h-14 text-lg bg-card hover:bg-card/80 text-foreground border border-border shadow-lg"
+            className="w-full h-14 text-base font-medium bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 shadow-sm"
             variant="outline"
           >
-            <span className="mr-2">📊</span> Мои Пополнения
+            <Icon name="Clock" className="mr-2" size={20} />
+            История операций
           </Button>
 
           <Button
             onClick={() => setView('help')}
-            className="w-full h-14 text-lg bg-card hover:bg-card/80 text-foreground border border-border shadow-lg"
+            className="w-full h-14 text-base font-medium bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 shadow-sm"
             variant="outline"
           >
-            <span className="mr-2">🆘</span> Помощь
+            <Icon name="HelpCircle" className="mr-2" size={20} />
+            Помощь
           </Button>
 
           <Button
             onClick={() => setView('admin')}
-            className="w-full h-10 text-sm bg-muted/50 hover:bg-muted text-muted-foreground border border-border"
+            className="w-full h-10 text-sm bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-300 mt-8"
             variant="outline"
           >
-            <span className="mr-2">⚙️</span> Админка
+            <Icon name="Settings" className="mr-2" size={16} />
+            Админ-панель
           </Button>
         </div>
       </div>
@@ -163,7 +168,7 @@ const Index = () => {
   );
 
   const renderTopupView = () => (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-background via-background to-accent/10">
+    <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-sky-50">
       <div className="max-w-md mx-auto pt-8">
         <Button
           onClick={() => setView('main')}
@@ -174,49 +179,52 @@ const Index = () => {
           Назад
         </Button>
 
-        <Card className="p-6 bg-card border-border shadow-xl">
+        <Card className="p-8 bg-white border-0 shadow-2xl rounded-2xl">
           {topupStep === 'amount' && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold">💰 Введите сумму</h2>
-                <p className="text-muted-foreground">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                  <Icon name="DollarSign" className="text-white" size={32} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Введите сумму</h2>
+                <p className="text-gray-600">
                   Укажите сумму пополнения
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div className="space-y-3">
-                  <Label>Валюта</Label>
+                  <Label className="text-gray-700 font-medium">Валюта</Label>
                   <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-200 hover:border-primary hover:bg-blue-50 transition-all cursor-pointer">
                       <RadioGroupItem value="CNY" id="cny" />
                       <Label htmlFor="cny" className="flex-1 cursor-pointer">
-                        <div className="font-medium">¥ Юани (CNY)</div>
-                        <div className="text-sm text-muted-foreground">Китайский юань</div>
+                        <div className="font-semibold text-gray-800">¥ Юани (CNY)</div>
+                        <div className="text-sm text-gray-500">Китайский юань</div>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-200 hover:border-primary hover:bg-blue-50 transition-all cursor-pointer">
                       <RadioGroupItem value="RUB" id="rub" />
                       <Label htmlFor="rub" className="flex-1 cursor-pointer">
-                        <div className="font-medium">₽ Рубли (RUB)</div>
-                        <div className="text-sm text-muted-foreground">Курс: 1¥ = 11.40₽</div>
+                        <div className="font-semibold text-gray-800">₽ Рубли (RUB)</div>
+                        <div className="text-sm text-gray-500">Курс: 1¥ = 11.40₽</div>
                       </Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Сумма ({currency === 'CNY' ? '¥' : '₽'})</Label>
+                  <Label htmlFor="amount" className="text-gray-700 font-medium">Сумма ({currency === 'CNY' ? '¥' : '₽'})</Label>
                   <Input
                     id="amount"
                     type="number"
                     placeholder={currency === 'CNY' ? '1000' : '11400'}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="text-lg h-12"
+                    className="text-xl h-14 border-2 border-gray-200 focus:border-primary rounded-xl"
                   />
                   {currency === 'RUB' && amount && parseFloat(amount) > 0 && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-gray-500">
                       ≈ ¥ {(parseFloat(amount) / CNY_TO_RUB_RATE).toFixed(2)}
                     </p>
                   )}
@@ -224,7 +232,7 @@ const Index = () => {
 
                 <Button
                   onClick={handleAmountSubmit}
-                  className="w-full h-12 text-lg"
+                  className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-secondary hover:shadow-lg transition-all"
                 >
                   Продолжить
                   <Icon name="ArrowRight" className="ml-2" size={20} />
@@ -236,15 +244,18 @@ const Index = () => {
           {topupStep === 'qr' && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold">📸 Отправьте QR-код</h2>
-                <p className="text-muted-foreground">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                  <Icon name="QrCode" className="text-white" size={32} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Отправьте QR-код</h2>
+                <p className="text-gray-600">
                   Загрузите ваш QR-код Alipay
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors">
-                  <Icon name="Upload" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center hover:border-primary hover:bg-blue-50 transition-all">
+                  <Icon name="Upload" size={48} className="mx-auto mb-4 text-gray-400" />
                   <p className="text-sm text-muted-foreground mb-4">
                     Нажмите для загрузки QR-кода
                   </p>
@@ -327,7 +338,7 @@ const Index = () => {
   );
 
   const renderHistoryView = () => (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-background via-background to-accent/10">
+    <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-sky-50">
       <div className="max-w-md mx-auto pt-8">
         <Button
           onClick={() => setView('main')}
@@ -388,7 +399,7 @@ const Index = () => {
   );
 
   const renderHelpView = () => (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-background via-background to-accent/10">
+    <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-sky-50">
       <div className="max-w-md mx-auto pt-8">
         <Button
           onClick={() => setView('main')}
@@ -399,54 +410,60 @@ const Index = () => {
           Назад
         </Button>
 
-        <Card className="p-6 bg-card border-border shadow-xl space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold">🆘 Помощь</h2>
-            <p className="text-muted-foreground">Как пользоваться ботом</p>
+        <Card className="p-8 bg-white border-0 shadow-2xl rounded-2xl space-y-6">
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mx-auto mb-2 flex items-center justify-center">
+              <Icon name="HelpCircle" className="text-white" size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">Помощь</h2>
+            <p className="text-gray-600">Как пользоваться сервисом</p>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="font-semibold flex items-center gap-2">
-                <span>1️⃣</span> Как пополнить?
+          <div className="space-y-5">
+            <div className="p-4 bg-blue-50 rounded-xl">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm">1</div>
+                Как пополнить?
               </h3>
-              <p className="text-sm text-muted-foreground pl-8">
-                Нажмите "Пополнить Алипей", выберите валюту, введите сумму, загрузите QR-код и получите реквизиты
+              <p className="text-sm text-gray-600 pl-8">
+                Нажмите "Пополнить кошелёк", выберите валюту, введите сумму, загрузите QR-код и получите реквизиты
               </p>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold flex items-center gap-2">
-                <span>2️⃣</span> Какой курс?
+            <div className="p-4 bg-blue-50 rounded-xl">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm">2</div>
+                Какой курс?
               </h3>
-              <p className="text-sm text-muted-foreground pl-8">
+              <p className="text-sm text-gray-600 pl-8">
                 1 юань = 11.40 рублей. При выборе рублей сумма автоматически конвертируется
               </p>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold flex items-center gap-2">
-                <span>3️⃣</span> Сколько ждать?
+            <div className="p-4 bg-blue-50 rounded-xl">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm">3</div>
+                Сколько ждать?
               </h3>
-              <p className="text-sm text-muted-foreground pl-8">
+              <p className="text-sm text-gray-600 pl-8">
                 Обычно деньги приходят в течение 5-10 минут после оплаты
               </p>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="font-semibold flex items-center gap-2">
-                <span>4️⃣</span> Возникли проблемы?
+            <div className="p-4 bg-blue-50 rounded-xl">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm">4</div>
+                Возникли проблемы?
               </h3>
-              <p className="text-sm text-muted-foreground pl-8">
+              <p className="text-sm text-gray-600 pl-8">
                 Свяжитесь с нами: support@alipaybot.com
               </p>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-border">
+          <div className="pt-2">
             <Button
-              variant="outline"
-              className="w-full"
+              className="w-full h-12 bg-gradient-to-r from-primary to-secondary text-white font-semibold"
               onClick={() => window.open('mailto:support@alipaybot.com')}
             >
               <Icon name="Mail" className="mr-2" size={20} />
