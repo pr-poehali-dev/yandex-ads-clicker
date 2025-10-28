@@ -225,7 +225,7 @@ const TopupView = ({
               )}
 
               <Button
-                onClick={() => topupStep === 'details' ? document.getElementById('payment-proof-upload')?.click() : onComplete()}
+                onClick={() => document.getElementById('payment-proof-upload')?.click()}
                 className="w-full h-12 bg-gradient-to-r from-primary to-secondary text-white font-semibold"
               >
                 <Icon name="CheckCircle" className="mr-2" size={20} />
@@ -236,9 +236,7 @@ const TopupView = ({
                 accept="image/*"
                 className="hidden"
                 id="payment-proof-upload"
-                onChange={(e) => {
-                  onPaymentProofUpload(e);
-                }}
+                onChange={onPaymentProofUpload}
               />
             </div>
           )}
