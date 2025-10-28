@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-type TopupStep = 'amount' | 'qr' | 'details';
+type TopupStep = 'amount' | 'qr' | 'details' | 'payment-proof';
 type Currency = 'CNY' | 'RUB';
 
 interface Transaction {
@@ -26,12 +26,14 @@ interface TopupViewProps {
   amount: string;
   currency: Currency;
   qrUploaded: boolean;
+  paymentProofUploaded: boolean;
   currentTransaction: Transaction | null;
   onBack: () => void;
   onAmountChange: (value: string) => void;
   onCurrencyChange: (value: Currency) => void;
   onAmountSubmit: () => void;
   onQrUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onPaymentProofUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onComplete: () => void;
   getDisplayAmount: () => string;
 }
@@ -43,12 +45,14 @@ const TopupView = ({
   amount,
   currency,
   qrUploaded,
+  paymentProofUploaded,
   currentTransaction,
   onBack,
   onAmountChange,
   onCurrencyChange,
   onAmountSubmit,
   onQrUpload,
+  onPaymentProofUpload,
   onComplete,
   getDisplayAmount,
 }: TopupViewProps) => {
@@ -199,12 +203,62 @@ const TopupView = ({
               )}
 
               <Button
-                onClick={onComplete}
+                onClick={() => topupStep === 'details' ? document.getElementById('payment-proof-upload')?.click() : onComplete()}
                 className="w-full h-12 bg-gradient-to-r from-primary to-secondary text-white font-semibold"
               >
                 <Icon name="CheckCircle" className="mr-2" size={20} />
-                Готово
+                Я оплатил
               </Button>
+              <Input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                id="payment-proof-upload"
+                onChange={(e) => {
+                  onPaymentProofUpload(e);
+                }}
+              />
+            </div>
+          )}
+
+          {topupStep === 'payment-proof' && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                  <Icon name="Camera" className="text-white" size={32} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Загрузите скриншот оплаты</h2>
+                <p className="text-gray-600">
+                  Подтвердите перевод средств
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center hover:border-primary hover:bg-blue-50 transition-all">
+                  <Icon name="Upload" size={48} className="mx-auto mb-4 text-gray-400" />
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Нажмите для загрузки скриншота
+                  </p>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="proof-upload"
+                    onChange={onPaymentProofUpload}
+                  />
+                  <Button asChild>
+                    <label htmlFor="proof-upload" className="cursor-pointer">
+                      Выбрать файл
+                    </label>
+                  </Button>
+                </div>
+
+                {paymentProofUploaded && (
+                  <div className="text-center text-sm text-green-500">
+                    ✅ Скриншот загружен
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </Card>

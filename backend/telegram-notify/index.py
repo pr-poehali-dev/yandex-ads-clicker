@@ -74,10 +74,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         image_bytes = base64.b64decode(image_base64)
         
-        # Формируем сообщение
-        caption = f"💰 Новая заявка на пополнение\n\n"
-        caption += f"Сумма: {amount} {currency}\n"
-        caption += f"Request ID: {context.request_id}"
+        # Получаем тип изображения
+        image_type = body_data.get('type', 'qr_code')
+        transaction_id = body_data.get('transaction_id', 'N/A')
+        
+        # Формируем сообщение в зависимости от типа
+        if image_type == 'payment_proof':
+            caption = f"✅ Скриншот оплаты\n\n"
+            caption += f"Сумма: {amount} {currency}\n"
+            caption += f"Transaction ID: {transaction_id}\n"
+            caption += f"Request ID: {context.request_id}"
+        else:
+            caption = f"💰 Новая заявка на пополнение (QR-код)\n\n"
+            caption += f"Сумма: {amount} {currency}\n"
+            caption += f"Request ID: {context.request_id}"
         
         # Отправляем фото в Telegram
         telegram_url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"

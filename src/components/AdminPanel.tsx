@@ -18,6 +18,18 @@ interface PaymentDetail {
 
 const API_BASE_URL = 'https://functions.poehali.dev';
 const PAYMENT_DETAILS_URL = `${API_BASE_URL}/a43eaa82-a100-498f-861b-df3e74b3c911`;
+const TRANSACTIONS_URL = `${API_BASE_URL}/414252e7-8c91-4292-98d5-f6fd21aab3f4`;
+
+interface Transaction {
+  id: number;
+  amount: number;
+  currency: string;
+  amount_cny: number;
+  date: string;
+  status: 'pending' | 'completed' | 'failed';
+  qr_code_url?: string;
+  payment_proof_url?: string;
+}
 
 interface AdminPanelProps {
   onBack: () => void;
@@ -25,6 +37,8 @@ interface AdminPanelProps {
 
 const AdminPanel = ({ onBack }: AdminPanelProps) => {
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetail[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [view, setView] = useState<'payment-details' | 'transactions'>('payment-details');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     recipient_name: '',
@@ -35,8 +49,12 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchPaymentDetails();
-  }, []);
+    if (view === 'payment-details') {
+      fetchPaymentDetails();
+    } else {
+      fetchTransactions();
+    }
+  }, [view]);
 
   const fetchPaymentDetails = async () => {
     try {
@@ -45,6 +63,16 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
       setPaymentDetails(data);
     } catch (error) {
       console.error('Failed to fetch payment details:', error);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch(TRANSACTIONS_URL);
+      const data = await response.json();
+      setTransactions(data);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
     }
   };
 
@@ -139,13 +167,34 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
         <div className="space-y-6">
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold">⚙️ Админ-панель</h2>
-            <p className="text-muted-foreground">Управление реквизитами для оплаты</p>
+            <p className="text-muted-foreground">Управление системой</p>
           </div>
 
-          <Card className="p-6 bg-card border-border">
-            <h3 className="text-xl font-semibold mb-4">
-              {editingId ? 'Редактировать реквизит' : 'Добавить реквизит'}
-            </h3>
+          <div className="flex justify-center gap-4 mb-6">
+            <Button
+              onClick={() => setView('payment-details')}
+              variant={view === 'payment-details' ? 'default' : 'outline'}
+              className="h-12"
+            >
+              <Icon name="CreditCard" className="mr-2" size={20} />
+              Реквизиты
+            </Button>
+            <Button
+              onClick={() => setView('transactions')}
+              variant={view === 'transactions' ? 'default' : 'outline'}
+              className="h-12"
+            >
+              <Icon name="FileText" className="mr-2" size={20} />
+              Транзакции
+            </Button>
+          </div>
+
+          {view === 'payment-details' && (
+            <>
+              <Card className="p-6 bg-card border-border">
+                <h3 className="text-xl font-semibold mb-4">
+                  {editingId ? 'Редактировать реквизит' : 'Добавить реквизит'}
+                </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -274,6 +323,80 @@ const AdminPanel = ({ onBack }: AdminPanelProps) => {
               ))
             )}
           </div>
+            </>
+          )}
+
+          {view === 'transactions' && (
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold">Список транзакций</h3>
+              {transactions.length === 0 ? (
+                <Card className="p-6 text-center text-muted-foreground">
+                  Транзакции не найдены
+                </Card>
+              ) : (
+                transactions.map((transaction) => (
+                  <Card key={transaction.id} className="p-4 bg-card border-border">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="font-semibold text-lg">
+                            ₽ {transaction.amount} (¥ {transaction.amount_cny})
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(transaction.date).toLocaleString('ru-RU')}
+                          </p>
+                          <p className="text-sm">
+                            Статус: <span className={
+                              transaction.status === 'completed' ? 'text-green-600' :
+                              transaction.status === 'pending' ? 'text-yellow-600' : 'text-red-600'
+                            }>
+                              {transaction.status === 'completed' ? 'Завершено' :
+                               transaction.status === 'pending' ? 'В обработке' : 'Отклонено'}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="text-right text-sm text-gray-500">
+                          ID: {transaction.id}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        {transaction.qr_code_url && (
+                          <div className="border rounded-lg p-2">
+                            <p className="text-xs text-muted-foreground mb-2">QR-код пользователя:</p>
+                            <a 
+                              href={transaction.qr_code_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline text-sm flex items-center gap-1"
+                            >
+                              <Icon name="Image" size={16} />
+                              Посмотреть
+                            </a>
+                          </div>
+                        )}
+                        
+                        {transaction.payment_proof_url && (
+                          <div className="border rounded-lg p-2">
+                            <p className="text-xs text-muted-foreground mb-2">Скриншот оплаты:</p>
+                            <a 
+                              href={transaction.payment_proof_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:underline text-sm flex items-center gap-1"
+                            >
+                              <Icon name="CheckCircle" size={16} />
+                              Посмотреть
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import HistoryView from '@/components/HistoryView';
 import HelpView from '@/components/HelpView';
 
 type View = 'main' | 'topup' | 'history' | 'help' | 'admin';
-type TopupStep = 'amount' | 'qr' | 'details';
+type TopupStep = 'amount' | 'qr' | 'details' | 'payment-proof';
 type Currency = 'CNY' | 'RUB';
 
 interface Transaction {
@@ -33,6 +33,7 @@ const Index = () => {
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<Currency>('CNY');
   const [qrUploaded, setQrUploaded] = useState(false);
+  const [paymentProofUploaded, setPaymentProofUploaded] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
   const { toast } = useToast();
@@ -140,12 +141,71 @@ const Index = () => {
     setCurrentTransaction(null);
   };
 
+  const handlePaymentProofUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setPaymentProofUploaded(true);
+    
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string;
+        
+        const telegramUrl = 'https://functions.poehali.dev/1176ffc9-bd7b-4a55-9c07-6c45775764a9';
+        await fetch(telegramUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            amount: amount,
+            currency: currency,
+            type: 'payment_proof',
+            transaction_id: currentTransaction?.id,
+          }),
+        });
+
+        if (currentTransaction) {
+          await fetch(`${TRANSACTIONS_URL}/${currentTransaction.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              status: 'completed',
+            }),
+          });
+        }
+
+        setTimeout(() => {
+          toast({
+            title: '✅ Скриншот принят!',
+            description: 'Ваша заявка обрабатывается',
+          });
+          handleTopupComplete();
+        }, 500);
+      };
+      
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Failed to upload payment proof:', error);
+      toast({
+        title: '❌ Ошибка',
+        description: 'Не удалось загрузить скриншот',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleTopupComplete = () => {
     setView('main');
     setTopupStep('amount');
     setAmount('');
     setCurrency('CNY');
     setQrUploaded(false);
+    setPaymentProofUploaded(false);
     setCurrentTransaction(null);
   };
 
@@ -166,6 +226,8 @@ const Index = () => {
         onCurrencyChange={setCurrency}
         onAmountSubmit={handleAmountSubmit}
         onQrUpload={handleQrUpload}
+        onPaymentProofUpload={handlePaymentProofUpload}
+        paymentProofUploaded={paymentProofUploaded}
         onComplete={handleTopupComplete}
         getDisplayAmount={getDisplayAmount}
       />
