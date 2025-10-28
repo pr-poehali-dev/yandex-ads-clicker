@@ -5,6 +5,13 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 type TopupStep = 'amount' | 'qr' | 'details' | 'payment-proof' | 'waiting';
 type Currency = 'CNY' | 'RUB';
@@ -154,6 +161,35 @@ const TopupView = ({
                   Загрузите ваш QR-код Alipay
                 </p>
               </div>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full mb-4">
+                    <Icon name="HelpCircle" className="mr-2" size={20} />
+                    Где найти QR-код?
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-bold">Инструкция: Где найти QR-код Alipay</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <img 
+                      src="https://cdn.poehali.dev/files/04d3d49b-b9ed-4796-85af-50d93ee939a7.png" 
+                      alt="Инструкция Alipay" 
+                      className="w-full rounded-lg border"
+                    />
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-sm text-gray-700">
+                        <strong>1.</strong> Откройте приложение Alipay<br/>
+                        <strong>2.</strong> Нажмите "Оплатить и получить"<br/>
+                        <strong>3.</strong> Выберите "Приём платежей"<br/>
+                        <strong>4.</strong> Сделайте скриншот QR-кода
+                      </p>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               <div className="space-y-4">
                 <div className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center hover:border-primary hover:bg-blue-50 transition-all">
