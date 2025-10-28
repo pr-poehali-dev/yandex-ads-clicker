@@ -67,31 +67,57 @@ const Index = () => {
     setTopupStep('qr');
   };
 
-  const handleQrUpload = async () => {
+  const handleQrUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     setQrUploaded(true);
     
     try {
-      const response = await fetch(TRANSACTIONS_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          currency: currency,
-        }),
-      });
-
-      const transaction = await response.json();
-      setCurrentTransaction(transaction);
-
-      setTimeout(() => {
-        setTopupStep('details');
-        toast({
-          title: '✅ QR-код принят!',
-          description: 'Вот реквизиты для оплаты',
+      // Конвертируем файл в base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string;
+        
+        // Отправляем в Telegram
+        const telegramUrl = 'https://functions.poehali.dev/1176ffc9-bd7b-4a55-9c07-6c45775764a9';
+        await fetch(telegramUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            amount: amount,
+            currency: currency,
+          }),
         });
-      }, 500);
+
+        // Создаем транзакцию
+        const response = await fetch(TRANSACTIONS_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: parseFloat(amount),
+            currency: currency,
+          }),
+        });
+
+        const transaction = await response.json();
+        setCurrentTransaction(transaction);
+
+        setTimeout(() => {
+          setTopupStep('details');
+          toast({
+            title: '✅ QR-код принят!',
+            description: 'Вот реквизиты для оплаты',
+          });
+        }, 500);
+      };
+      
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Failed to create transaction:', error);
       toast({
