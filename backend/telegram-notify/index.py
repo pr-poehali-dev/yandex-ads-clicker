@@ -101,8 +101,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'caption': caption
         }
         
-        # Добавляем кнопки только для QR-кода
-        if image_type != 'payment_proof' and transaction_id != 'N/A':
+        # Добавляем кнопки только для скриншотов оплаты
+        if image_type == 'payment_proof' and transaction_id != 'N/A':
             reply_markup = {
                 'inline_keyboard': [[
                     {
