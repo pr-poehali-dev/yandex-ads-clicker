@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Get all transactions",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": [],
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create transaction in CNY",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "amount": 1000,
+        "currency": "CNY"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "amount": 1000,
+        "currency": "CNY",
+        "status": "pending"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

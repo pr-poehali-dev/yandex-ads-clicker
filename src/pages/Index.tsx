@@ -1,31 +1,59 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import AdminPanel from '@/components/AdminPanel';
 
-type View = 'main' | 'topup' | 'history' | 'help';
+type View = 'main' | 'topup' | 'history' | 'help' | 'admin';
 type TopupStep = 'amount' | 'qr' | 'details';
+type Currency = 'CNY' | 'RUB';
 
 interface Transaction {
-  id: string;
+  id: number;
   amount: number;
+  currency: string;
+  amount_cny: number;
   date: string;
   status: 'pending' | 'completed' | 'failed';
+  payment_details?: {
+    recipient_name: string;
+    account_number: string;
+  };
 }
+
+const CNY_TO_RUB_RATE = 11.40;
+const API_BASE_URL = 'https://functions.poehali.dev';
+const TRANSACTIONS_URL = `${API_BASE_URL}/414252e7-8c91-4292-98d5-f6fd21aab3f4`;
 
 const Index = () => {
   const [view, setView] = useState<View>('main');
   const [topupStep, setTopupStep] = useState<TopupStep>('amount');
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState<Currency>('CNY');
   const [qrUploaded, setQrUploaded] = useState(false);
-  const [transactions] = useState<Transaction[]>([
-    { id: '1', amount: 1000, date: '2025-10-25', status: 'completed' },
-    { id: '2', amount: 500, date: '2025-10-26', status: 'pending' },
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (view === 'history') {
+      fetchTransactions();
+    }
+  }, [view]);
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch(TRANSACTIONS_URL);
+      const data = await response.json();
+      setTransactions(data);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+    }
+  };
 
   const handleAmountSubmit = () => {
     if (!amount || parseFloat(amount) <= 0) {
@@ -39,15 +67,47 @@ const Index = () => {
     setTopupStep('qr');
   };
 
-  const handleQrUpload = () => {
+  const handleQrUpload = async () => {
     setQrUploaded(true);
-    setTimeout(() => {
-      setTopupStep('details');
-      toast({
-        title: '✅ QR-код принят!',
-        description: 'Вот реквизиты для оплаты',
+    
+    try {
+      const response = await fetch(TRANSACTIONS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          currency: currency,
+        }),
       });
-    }, 500);
+
+      const transaction = await response.json();
+      setCurrentTransaction(transaction);
+
+      setTimeout(() => {
+        setTopupStep('details');
+        toast({
+          title: '✅ QR-код принят!',
+          description: 'Вот реквизиты для оплаты',
+        });
+      }, 500);
+    } catch (error) {
+      console.error('Failed to create transaction:', error);
+      toast({
+        title: '❌ Ошибка',
+        description: 'Не удалось создать заявку',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getDisplayAmount = () => {
+    const amountValue = parseFloat(amount);
+    if (currency === 'CNY') {
+      return `¥ ${amountValue}`;
+    }
+    return `₽ ${amountValue} (¥ ${(amountValue / CNY_TO_RUB_RATE).toFixed(2)})`;
   };
 
   const renderMainView = () => (
@@ -64,7 +124,9 @@ const Index = () => {
               setView('topup');
               setTopupStep('amount');
               setAmount('');
+              setCurrency('CNY');
               setQrUploaded(false);
+              setCurrentTransaction(null);
             }}
             className="w-full h-14 text-lg bg-card hover:bg-card/80 text-foreground border border-border shadow-lg"
             variant="outline"
@@ -86,6 +148,14 @@ const Index = () => {
             variant="outline"
           >
             <span className="mr-2">🆘</span> Помощь
+          </Button>
+
+          <Button
+            onClick={() => setView('admin')}
+            className="w-full h-10 text-sm bg-muted/50 hover:bg-muted text-muted-foreground border border-border"
+            variant="outline"
+          >
+            <span className="mr-2">⚙️</span> Админка
           </Button>
         </div>
       </div>
@@ -110,21 +180,46 @@ const Index = () => {
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold">💰 Введите сумму</h2>
                 <p className="text-muted-foreground">
-                  Укажите сумму пополнения в юанях
+                  Укажите сумму пополнения
                 </p>
               </div>
 
               <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label>Валюта</Label>
+                  <RadioGroup value={currency} onValueChange={(value) => setCurrency(value as Currency)}>
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="CNY" id="cny" />
+                      <Label htmlFor="cny" className="flex-1 cursor-pointer">
+                        <div className="font-medium">¥ Юани (CNY)</div>
+                        <div className="text-sm text-muted-foreground">Китайский юань</div>
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="RUB" id="rub" />
+                      <Label htmlFor="rub" className="flex-1 cursor-pointer">
+                        <div className="font-medium">₽ Рубли (RUB)</div>
+                        <div className="text-sm text-muted-foreground">Курс: 1¥ = 11.40₽</div>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Сумма (¥)</Label>
+                  <Label htmlFor="amount">Сумма ({currency === 'CNY' ? '¥' : '₽'})</Label>
                   <Input
                     id="amount"
                     type="number"
-                    placeholder="1000"
+                    placeholder={currency === 'CNY' ? '1000' : '11400'}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="text-lg h-12"
                   />
+                  {currency === 'RUB' && amount && parseFloat(amount) > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      ≈ ¥ {(parseFloat(amount) / CNY_TO_RUB_RATE).toFixed(2)}
+                    </p>
+                  )}
                 </div>
 
                 <Button
@@ -176,35 +271,39 @@ const Index = () => {
             </div>
           )}
 
-          {topupStep === 'details' && (
+          {topupStep === 'details' && currentTransaction && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold">✅ Реквизиты для оплаты</h2>
                 <p className="text-muted-foreground">
-                  Отправьте {amount} ¥ по указанным реквизитам
+                  Отправьте {getDisplayAmount()} по указанным реквизитам
                 </p>
               </div>
 
               <div className="space-y-4 bg-muted/50 p-4 rounded-lg">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Получатель
-                  </p>
-                  <p className="text-lg font-mono">Zhang Wei</p>
-                </div>
+                {currentTransaction.payment_details && (
+                  <>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Получатель
+                      </p>
+                      <p className="text-lg font-mono">{currentTransaction.payment_details.recipient_name}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Номер счета
+                      </p>
+                      <p className="text-lg font-mono">{currentTransaction.payment_details.account_number}</p>
+                    </div>
+                  </>
+                )}
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">
-                    Номер счета
+                    Сумма к оплате
                   </p>
-                  <p className="text-lg font-mono">+86 138 0013 8000</p>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Сумма
-                  </p>
-                  <p className="text-2xl font-bold text-primary">¥ {amount}</p>
+                  <p className="text-2xl font-bold text-primary">{getDisplayAmount()}</p>
                 </div>
               </div>
 
@@ -246,27 +345,42 @@ const Index = () => {
           </div>
 
           <div className="space-y-3">
-            {transactions.map((tx) => (
-              <Card key={tx.id} className="p-4 bg-card border-border">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="font-medium">¥ {tx.amount}</p>
-                    <p className="text-sm text-muted-foreground">{tx.date}</p>
-                  </div>
-                  <div>
-                    {tx.status === 'completed' && (
-                      <span className="text-green-500 text-sm">✅ Завершено</span>
-                    )}
-                    {tx.status === 'pending' && (
-                      <span className="text-yellow-500 text-sm">⏳ В обработке</span>
-                    )}
-                    {tx.status === 'failed' && (
-                      <span className="text-red-500 text-sm">❌ Ошибка</span>
-                    )}
-                  </div>
-                </div>
+            {transactions.length === 0 ? (
+              <Card className="p-6 text-center text-muted-foreground">
+                Пока нет транзакций
               </Card>
-            ))}
+            ) : (
+              transactions.map((tx) => (
+                <Card key={tx.id} className="p-4 bg-card border-border">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {tx.currency === 'CNY' ? '¥' : '₽'} {tx.amount}
+                        {tx.currency === 'RUB' && (
+                          <span className="text-sm text-muted-foreground ml-2">
+                            (¥ {tx.amount_cny})
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(tx.date).toLocaleString('ru-RU')}
+                      </p>
+                    </div>
+                    <div>
+                      {tx.status === 'completed' && (
+                        <span className="text-green-500 text-sm">✅ Завершено</span>
+                      )}
+                      {tx.status === 'pending' && (
+                        <span className="text-yellow-500 text-sm">⏳ В обработке</span>
+                      )}
+                      {tx.status === 'failed' && (
+                        <span className="text-red-500 text-sm">❌ Ошибка</span>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -297,13 +411,22 @@ const Index = () => {
                 <span>1️⃣</span> Как пополнить?
               </h3>
               <p className="text-sm text-muted-foreground pl-8">
-                Нажмите "Пополнить Алипей", введите сумму, загрузите QR-код и получите реквизиты
+                Нажмите "Пополнить Алипей", выберите валюту, введите сумму, загрузите QR-код и получите реквизиты
               </p>
             </div>
 
             <div className="space-y-2">
               <h3 className="font-semibold flex items-center gap-2">
-                <span>2️⃣</span> Сколько ждать?
+                <span>2️⃣</span> Какой курс?
+              </h3>
+              <p className="text-sm text-muted-foreground pl-8">
+                1 юань = 11.40 рублей. При выборе рублей сумма автоматически конвертируется
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold flex items-center gap-2">
+                <span>3️⃣</span> Сколько ждать?
               </h3>
               <p className="text-sm text-muted-foreground pl-8">
                 Обычно деньги приходят в течение 5-10 минут после оплаты
@@ -312,7 +435,7 @@ const Index = () => {
 
             <div className="space-y-2">
               <h3 className="font-semibold flex items-center gap-2">
-                <span>3️⃣</span> Возникли проблемы?
+                <span>4️⃣</span> Возникли проблемы?
               </h3>
               <p className="text-sm text-muted-foreground pl-8">
                 Свяжитесь с нами: support@alipaybot.com
@@ -341,6 +464,7 @@ const Index = () => {
       {view === 'topup' && renderTopupView()}
       {view === 'history' && renderHistoryView()}
       {view === 'help' && renderHelpView()}
+      {view === 'admin' && <AdminPanel onBack={() => setView('main')} />}
     </>
   );
 };

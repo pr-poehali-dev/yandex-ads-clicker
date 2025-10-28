@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Get all payment details",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": [
+        {
+          "id": "number",
+          "recipient_name": "string",
+          "account_number": "string",
+          "currency": "string",
+          "is_active": "boolean"
+        }
+      ],
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create payment detail",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "recipient_name": "Test User",
+        "account_number": "+86 123 456 7890",
+        "currency": "CNY"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "recipient_name": "Test User",
+        "account_number": "+86 123 456 7890"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
