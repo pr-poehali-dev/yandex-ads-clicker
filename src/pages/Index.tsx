@@ -184,7 +184,11 @@ const Index = () => {
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mx-auto mb-4 flex items-center justify-center">
-                  <Icon name="DollarSign" className="text-white" size={32} />
+                  <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 4C12.96 4 4 12.96 4 24s8.96 20 20 20 20-8.96 20-20S35.04 4 24 4zm0 36c-8.84 0-16-7.16-16-16S15.16 8 24 8s16 7.16 16 16-7.16 16-16 16z" fill="white"/>
+                    <path d="M28.8 18.4h-9.6c-1.32 0-2.4 1.08-2.4 2.4v6.4c0 1.32 1.08 2.4 2.4 2.4h9.6c1.32 0 2.4-1.08 2.4-2.4v-6.4c0-1.32-1.08-2.4-2.4-2.4z" fill="white"/>
+                    <path d="M18 22h12M21 18v12M27 18v12" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">Введите сумму</h2>
                 <p className="text-gray-600">
