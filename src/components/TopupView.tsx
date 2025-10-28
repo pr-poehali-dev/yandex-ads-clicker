@@ -84,7 +84,7 @@ const TopupView = ({
               <div className="space-y-5">
                 <div className="space-y-3">
                   <Label htmlFor="amount" className="text-gray-700 font-medium">
-                    Сумма
+                    Сумма в рублях
                   </Label>
                   <div className="relative">
                     <Input
@@ -96,12 +96,12 @@ const TopupView = ({
                       className="pl-8 h-14 text-lg border-2 border-gray-200 focus:border-primary rounded-xl"
                     />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
-                      {currency === 'CNY' ? '¥' : '₽'}
+                      ₽
                     </span>
                   </div>
-                  {currency === 'RUB' && amount && (
+                  {amount && parseFloat(amount) > 0 && (
                     <p className="text-sm text-muted-foreground">
-                      ≈ ¥ {(parseFloat(amount) / CNY_TO_RUB_RATE).toFixed(2)}
+                      ≈ ¥ {(parseFloat(amount) / 11.45).toFixed(2)}
                     </p>
                   )}
                 </div>
