@@ -41,7 +41,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # Получаем данные из запроса
         image_base64 = body_data.get('image')
-        chat_id = body_data.get('chat_id', '489473118')  # ID чата куда отправлять
+        chat_id = body_data.get('chat_id', '-1003174200950')  # ID чата куда отправлять
         amount = body_data.get('amount', '')
         currency = body_data.get('currency', 'CNY')
         
