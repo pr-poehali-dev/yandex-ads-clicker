@@ -83,24 +83,6 @@ const TopupView = ({
 
               <div className="space-y-5">
                 <div className="space-y-3">
-                  <Label className="text-gray-700 font-medium">Валюта</Label>
-                  <RadioGroup value={currency} onValueChange={(value) => onCurrencyChange(value as Currency)}>
-                    <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-200 hover:border-primary hover:bg-blue-50 transition-all cursor-pointer">
-                      <RadioGroupItem value="CNY" id="cny" />
-                      <Label htmlFor="cny" className="flex-1 cursor-pointer font-medium">
-                        Юани (¥)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-3 p-4 rounded-xl border-2 border-gray-200 hover:border-primary hover:bg-blue-50 transition-all cursor-pointer">
-                      <RadioGroupItem value="RUB" id="rub" />
-                      <Label htmlFor="rub" className="flex-1 cursor-pointer font-medium">
-                        Рубли (₽)
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div className="space-y-3">
                   <Label htmlFor="amount" className="text-gray-700 font-medium">
                     Сумма
                   </Label>
