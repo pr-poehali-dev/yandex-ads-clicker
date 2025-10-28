@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useState, useEffect } from 'react';
 
-type TopupStep = 'amount' | 'qr' | 'details' | 'payment-proof';
+type TopupStep = 'amount' | 'qr' | 'details' | 'payment-proof' | 'waiting';
 type Currency = 'CNY' | 'RUB';
 
 interface Transaction {
@@ -36,6 +37,7 @@ interface TopupViewProps {
   onPaymentProofUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onComplete: () => void;
   getDisplayAmount: () => string;
+  waitingTime?: number;
 }
 
 const CNY_TO_RUB_RATE = 11.40;
@@ -55,7 +57,27 @@ const TopupView = ({
   onPaymentProofUpload,
   onComplete,
   getDisplayAmount,
+  waitingTime = 0,
 }: TopupViewProps) => {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (topupStep === 'waiting') {
+      const interval = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setElapsedSeconds(0);
+    }
+  }, [topupStep]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-sky-50">
       <div className="max-w-md mx-auto pt-8">
@@ -258,6 +280,31 @@ const TopupView = ({
                     ✅ Скриншот загружен
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {topupStep === 'waiting' && (
+            <div className="space-y-6">
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
+                  <Icon name="Clock" className="text-white" size={40} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Ожидаем подтверждения</h2>
+                <p className="text-gray-600">
+                  Ваш платёж проверяется администратором
+                </p>
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 mt-4">
+                  <div className="text-5xl font-bold text-primary mb-2">
+                    {formatTime(elapsedSeconds)}
+                  </div>
+                  <p className="text-sm text-gray-600">Время ожидания</p>
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-4">
+                  <p className="text-sm text-yellow-800">
+                    <strong>💡 Обычно проверка занимает 1-3 минуты</strong>
+                  </p>
+                </div>
               </div>
             </div>
           )}
