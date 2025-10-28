@@ -8,18 +8,19 @@ interface HelpViewProps {
 
 const HelpView = ({ onBack }: HelpViewProps) => {
   return (
-    <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 via-white to-sky-50">
-      <div className="max-w-2xl mx-auto pt-8">
+    <div className="min-h-screen p-4 bg-gradient-to-br from-blue-500 via-blue-400 to-sky-400">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+      <div className="max-w-2xl mx-auto pt-8 relative z-10">
         <Button
           onClick={onBack}
           variant="ghost"
-          className="mb-6"
+          className="mb-6 text-white hover:bg-white/20"
         >
           <Icon name="ArrowLeft" className="mr-2" size={20} />
           Назад
         </Button>
 
-        <Card className="p-8 bg-white border-0 shadow-2xl rounded-2xl">
+        <Card className="p-8 bg-white/95 backdrop-blur border-0 shadow-2xl rounded-3xl">
           <div className="text-center space-y-2 mb-8">
             <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl mx-auto mb-2 flex items-center justify-center">
               <Icon name="HelpCircle" className="text-white" size={32} />
